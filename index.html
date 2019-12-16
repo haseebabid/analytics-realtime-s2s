@@ -1,0 +1,91 @@
+<html>
+    <head>
+            
+        <!-- <script type="text/javascript" src="/socket.io/socket.io.js"></script> -->
+        <style>
+            h2.rightNow {
+                font-size: 28px;
+                font-family: sans-serif;
+            }
+            h2#onlineUsers {
+                font-size: 78px;
+                font-family: sans-serif;
+            }
+            span.rightNow {
+                font-size: 14px;
+                font-family: sans-serif;
+            }
+        </style>
+       
+
+    </head>
+    <body>
+        <h2 class="rightNow">Right now</h2>
+        <h2 id="onlineUsers">0</h2>
+        <span class="rightNow">active users on site</span>
+        <canvas id="chart1"></canvas>
+        
+        <script type="text/javascript" src="/static/jquery/dist/jquery.min.js"></script>
+        <script type="text/javascript" src="/static/chart.js/dist/Chart.bundle.min.js"></script>
+        <script type="text/javascript">
+            var socket = io();
+            
+            socket.on('devices', function(data) {
+                $('.chartjs-hidden-iframe').remove();
+                $('#onlineUsers').text(data.data.totalsForAllResults['rt:activeUsers']);
+                var colors = [
+                    [193, 57, 43],
+                    [39, 174, 97],
+                    [42, 128, 185],
+                    [143, 68, 173]
+                ];
+                var newdata = [
+                    {
+                        data: [],
+                        backgroundColor: [],
+                        borderColor: [],
+                        borderWidth: 1
+                    }
+                ];
+                var labels = [];
+                for (var i = 0; i < data.data.rows.length; i++) {
+                    newdata[0].data.push(Math.round((data.data.rows[i][1] / data.data.totalsForAllResults['rt:activeUsers']) * 100));
+                    newdata[0].backgroundColor.push('rgba(' + colors[i][0] + ',' + colors[i][1] + ',' + colors[i][2] + ',.65)');
+                    newdata[0].borderColor.push('rgb(' + colors[i][0] + ',' + colors[i][1] + ',' + colors[i][2] + ')');
+                    labels.push(data.data.rows[i][0].charAt(0).toUpperCase() + data.data.rows[i][0].substr(1).toLowerCase() + ' (' + Math.round((data.data.rows[i][1] / data.data.totalsForAllResults['rt:activeUsers']) * 100) + '%)');
+                }
+                
+                var ctx = $('#chart1');
+                
+                var data = {
+                    labels: labels,
+                    datasets: newdata
+                };
+                
+                var pieChart = new Chart(ctx, {
+                    type: 'pie',
+                    data: data,
+                    options: {
+                        tooltips: {
+                            enabled: false
+                        },
+                        legend: {
+                            display: true
+                        },
+                        animation: {
+                            duration: 1
+                        }
+                    }
+                });
+            });
+        </script>
+         <script>
+                (function(w,d,s,g,js,fs){
+                  g=w.gapi||(w.gapi={});g.analytics={q:[],ready:function(f){this.q.push(f);}};
+                  js=d.createElement(s);fs=d.getElementsByTagName(s)[0];
+                  js.src='https://apis.google.com/js/platform.js';
+                  fs.parentNode.insertBefore(js,fs);js.onload=function(){g.load('analytics');};
+                }(window,document,'script'));
+                </script>
+    </body>
+</html>
